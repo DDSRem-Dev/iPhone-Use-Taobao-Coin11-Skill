@@ -25,6 +25,24 @@
 
 ## 安装
 
+### 使用 npx 安装（推荐）
+
+需要已安装 Node.js，并能使用 `npx`。将 skill 安装到 Codex 的个人目录：
+
+```bash
+npx skills add DDSRem-Dev/iPhone-Use-Taobao-Coin11-Skill --skill taobao-coin11-energy --agent codex --global
+```
+
+如需仅安装到当前项目，在目标项目目录执行并省略 `--global`：
+
+```bash
+npx skills add DDSRem-Dev/iPhone-Use-Taobao-Coin11-Skill --skill taobao-coin11-energy --agent codex
+```
+
+命令使用 [skills CLI](https://github.com/vercel-labs/skills)，按终端提示确认安装即可。
+
+### 手动安装
+
 克隆仓库：
 
 ```bash
