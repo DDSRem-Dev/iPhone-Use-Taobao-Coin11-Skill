@@ -2,7 +2,7 @@
 
 通过 Mac「iPhone 镜像」，引导 AI 完成淘宝「淘金币双11狂享20亿」活动中的赚能量任务。
 
-本项目提供一个 Codex skill：**`taobao-coin11-energy`**。它将实机探索得到的操作流程、到账判断和故障恢复方法整理为可复用指引，供具备原生应用操作能力的 AI 使用。
+本项目提供两个 Codex skill：**`taobao-coin11-energy`** 用于赚能量任务，**`taobao-coin11-help`** 用于从助力 API 获取链接、通过 iPhone Safari 剪贴板在淘宝完成助力并回写状态。
 
 ## 能做什么
 
@@ -11,6 +11,8 @@
 - 按预计收益与完整耗时选择任务，减少重复截图、无效等待和失败重试。
 - 核验单次能量及累计任务奖励，区分已到账、待刷新和受阻状态。
 - 处理商品详情页的「搜同款」截图弹层，避免关闭与截图反复循环。
+- 读取当天未完成的淘金币助力链接，保持 `raw_text` 原样复制并循环完成。
+- 在局域网 HTTP 页面中由 iPhone Safari 执行复制，避免 Mac 键盘注入丢失中文、emoji 和特殊符号。
 
 这是操作指引型 skill，依赖 AI 所在环境的工具完成操作；仓库不包含独立运行的手机自动化程序，也不会安装控制工具或配置系统权限。
 
@@ -31,6 +33,12 @@
 
 ```bash
 npx skills add DDSRem-Dev/iPhone-Use-Taobao-Coin11-Skill --skill taobao-coin11-energy --agent codex --global
+```
+
+助力 skill：
+
+```bash
+npx skills add DDSRem-Dev/iPhone-Use-Taobao-Coin11-Skill --skill taobao-coin11-help --agent codex --global
 ```
 
 如需仅安装到当前项目，在目标项目目录执行并省略 `--global`：
@@ -55,13 +63,16 @@ cd iPhone-Use-Taobao-Coin11-Skill
 ```bash
 mkdir -p ~/.agents/skills
 cp -R taobao-coin11-energy ~/.agents/skills/
+cp -R taobao-coin11-help ~/.agents/skills/
 cp LICENSE ~/.agents/skills/taobao-coin11-energy/LICENSE
+cp LICENSE ~/.agents/skills/taobao-coin11-help/LICENSE
 ```
 
 安装后的入口应为：
 
 ```text
 ~/.agents/skills/taobao-coin11-energy/SKILL.md
+~/.agents/skills/taobao-coin11-help/SKILL.md
 ```
 
 也可以将整个 `taobao-coin11-energy` 文件夹放入目标项目的 `.agents/skills/`，用于该项目。请保留其中的 `agents/` 和 `references/`，并将仓库根目录的 `LICENSE` 一并复制到 skill 文件夹。
@@ -87,6 +98,19 @@ $taobao-coin11-energy
 ```
 
 运行时尽量避免同时操作手机。需要人工操作时，按 AI 的说明完成后告知它，以便重新识别当前画面。
+
+## 助力链接
+
+使用 `taobao-coin11-help` 时，先在 Mac 启动局域网页面：
+
+```bash
+ONEBOT_ACCESS_TOKEN="$ONEBOT_ACCESS_TOKEN" \
+TB_HELP_API="http://127.0.0.1:7689" \
+TB_HELP_PORT=8765 \
+python3 taobao-coin11-help/scripts/tb_help_server.py
+```
+
+然后让 iPhone Safari 打开 `http://<Mac 局域网 IP>:8765/`。页面会显示当天尚未完成的记录；点击对应按钮复制完整 `raw_text`，切换淘宝并允许从 Safari 粘贴，完成“查看详情 → 帮ta助力”后才 POST 完成确认。不要使用 `phone.typeText(raw_text)`，该输入路径会丢失中文、emoji、`₴` 和部分标点。完整 API 与验证步骤见 [助力 API 与网页服务参考](taobao-coin11-help/references/api-workflow.md)。
 
 ## 操作中的关键点
 
@@ -124,7 +148,7 @@ $taobao-coin11-energy
 .
 ├── README.md
 ├── LICENSE
-└── taobao-coin11-energy/
+├── taobao-coin11-energy/
     ├── SKILL.md                    # AI 操作入口、分类与效率规则
     ├── agents/
     │   └── openai.yaml             # skill 显示信息
@@ -132,6 +156,14 @@ $taobao-coin11-energy
         ├── iphone-mirroring.md     # 连接、权限与工具排障
         ├── task-flows.md           # 各类任务的实测操作流程
         └── verification.md         # 探索证据与适用边界
+└── taobao-coin11-help/
+    ├── SKILL.md                    # API、Safari 复制和淘宝助力闭环
+    ├── agents/
+    │   └── openai.yaml             # skill 显示信息
+    ├── references/
+    │   └── api-workflow.md         # API schema、网页服务和验证记录
+    └── scripts/
+        └── tb_help_server.py       # 局域网 Safari 复制页面服务
 ```
 
 ## 许可证
